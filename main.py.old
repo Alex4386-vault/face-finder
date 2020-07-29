@@ -1,0 +1,124 @@
+import cv2
+import time
+import os
+
+from PIL import Image
+from datetime import datetime
+
+
+print("Capture Session Init...")
+
+laboratory_camera = 'rtsp://192.9.45.64:554/profile2/media.smp'
+
+jetson_onboard_camera = ('nvarguscamerasrc ! '
+            'video/x-raw(memory:NVMM), '
+            'width=(int)1280, height=(int)720, '
+            'format=(string)NV12, framerate=(fraction)15/1 ! '
+            'nvvidconv flip-method=0 ! '
+            'video/x-raw, width=(int){}, height=(int){}, '
+            'format=(string)BGRx ! '
+            'videoconvert ! appsink').format(1280, 720)
+
+capture_session = cv2.VideoCapture(laboratory_camera)
+capture_session = cv2.VideoCapture(jetson_onboard_camera)
+capture_session = cv2.VideoCapture(1)
+
+face_classifier = cv2.CascadeClassifier('trainData/haarcascade_frontalface_default.xml')
+
+current_frame_number = 0
+forget_threshold = 5
+screenshot_threshold = 7
+
+face_list = []
+
+move_threshold = (
+    capture_session.get(cv2.CAP_PROP_FRAME_WIDTH) / 10,
+    capture_session.get(cv2.CAP_PROP_FRAME_HEIGHT) / 10
+)
+
+last_fps = time.time()
+last_face_uid = 0
+
+screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M")+"/"
+os.mkdir(screenshot_base_directory)
+
+while(True):
+    start_time = time.time()
+    ret, currentFrame = capture_session.read()
+
+    #currentFrame = cv2.cvtColor(currentFrame, cv2.COLOR_BGR2RGB)
+    grayscale_frame = cv2.cvtColor(currentFrame, cv2.COLOR_RGB2GRAY)
+    
+    detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
+    
+    faceRecognitionFrame = currentFrame
+
+    currentFaces = []
+    for recordedFace in face_list:
+        recordedFace['seen']['prevSeen'] = False
+
+    for x,y,width,height in detected_faces:
+        currentFace = {
+            "x": x,
+            "y": y,
+            "width": width,
+            "hight": height,
+            "seen": {
+                "uuid": last_face_uid,
+                "prevSeen": False,
+                "screenshotCount": 0,
+                "seenFrames": 0,
+                "forgetValue": 0
+            }
+        }
+        currentFaces.append(currentFace)
+
+        for recordedFace in face_list:
+            if abs(recordedFace['x'] - x) <= move_threshold[0] and abs(recordedFace['y'] - y) <= move_threshold[1]:
+                recordedFace['x'] = x
+                recordedFace['y'] = y
+                recordedFace['width'] = width
+                recordedFace['height'] = height
+
+                recordedFace['seen']['prevSeen'] = True
+                recordedFace['seen']['seenFrames'] += 1
+                recordedFace['seen']['forgetValue'] = 0
+
+                if recordedFace['seen']['seenFrames'] > screenshot_threshold:
+                    screenshot = Image.fromarray(cv2.cvtColor(currentFrame,cv2.COLOR_BGR2RGB))
+                    faceCrop = screenshot.crop((x,y,x+width,y+height))
+
+                    if not os.path.isdir(screenshot_base_directory+str(recordedFace['seen']['uuid'])):
+                        os.mkdir(screenshot_base_directory+str(recordedFace['seen']['uuid'])+"/")
+
+                    faceCrop.save(screenshot_base_directory+str(recordedFace['seen']['uuid'])+"/"+str(recordedFace['seen']['screenshotCount'])+".jpg")
+                    recordedFace['seen']['screenshotCount'] += 1
+                break
+        else:
+            face_list.append(currentFace)
+            last_face_uid += 1
+
+        #faceRecognitionFrame = cv2.rectangle(faceRecognitionFrame, (x,y), (x+width, y+width), (255,0,0), 2)
+        
+    for recordedFace in face_list:
+        if recordedFace['seen']['prevSeen'] == False:
+            recordedFace['seen']['forgetValue'] += 1
+        
+        if recordedFace['seen']['forgetValue'] > forget_threshold:
+            face_list.remove(recordedFace)
+
+
+    #cv2.imshow("Current Input", faceRecognitionFrame)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+    
+    if time.time() - last_fps > 1:
+        print("Update: ", 1.0 / (time.time() - start_time), "fps")
+        print(face_list)
+        last_fps = time.time()
+
+    current_frame_number += 1
+
+capture_session.release()
+cv2.destroyAllWindows()

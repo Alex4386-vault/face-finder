@@ -1,12 +1,16 @@
 import cv2
 import time
-from PIL import Image
 import os
+
+from PIL import Image
 from datetime import datetime
+from pyfiglet import Figlet
 
-print("Capture Session Init...")
+from Face import Face
 
-jetsonOnBoardCam = ('nvarguscamerasrc ! '
+laboratory_camera = 'rtsp://192.9.45.64:554/profile2/media.smp'
+
+jetson_onboard_camera = ('nvarguscamerasrc ! '
             'video/x-raw(memory:NVMM), '
             'width=(int)1280, height=(int)720, '
             'format=(string)NV12, framerate=(fraction)15/1 ! '
@@ -15,104 +19,110 @@ jetsonOnBoardCam = ('nvarguscamerasrc ! '
             'format=(string)BGRx ! '
             'videoconvert ! appsink').format(1280, 720)
 
-#captureSession = cv2.VideoCapture(jetsonOnBoardCam)
-captureSession = cv2.VideoCapture(1)
-faceClassifier = cv2.CascadeClassifier('trainData/haarcascade_frontalface_default.xml')
+device_cam = 0
 
-currentFrameNo = 0
-forgetThreshold = 5
-screenshotThreshold = 7
+camera_to_use = device_cam
+screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M")+"/"
 
-recordedFaces = []
+classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
 
-moveThreshold = (
-    captureSession.get(cv2.CAP_PROP_FRAME_WIDTH) / 10,
-    captureSession.get(cv2.CAP_PROP_FRAME_HEIGHT) / 10
-)
+# === LOGIC ===
 
-lastFPSShow = time.time()
-lastUUID = 0
-
-screenshotBaseDir = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M")+"/"
-os.mkdir(screenshotBaseDir)
-
-while(True):
-    start_time = time.time()
-    ret, currentFrame = captureSession.read()
-
-    #currentFrame = cv2.cvtColor(currentFrame, cv2.COLOR_BGR2RGB)
-    grayScaleFrame = cv2.cvtColor(currentFrame, cv2.COLOR_RGB2GRAY)
+def main():
+    figlet = Figlet()
     
-    faceList = faceClassifier.detectMultiScale(grayScaleFrame, 1.3, 5)
+    print(figlet.renderText("PRML"))
+    print("Facial Recognition - Dataset collection")
+    print()
+
+    print("Setting up directory...")
+
+    if not os.path.exists(screenshot_base_directory):
+        os.mkdir(screenshot_base_directory)
+
     
-    faceRecognitionFrame = currentFrame
+    capture_session = cv2.VideoCapture(camera_to_use)
 
-    currentFaces = []
-    for recordedFace in recordedFaces:
-        recordedFace['seen']['prevSeen'] = False
+    origin_width = capture_session.get(cv2.CAP_PROP_FRAME_WIDTH) / 10
+    origin_height = capture_session.get(cv2.CAP_PROP_FRAME_HEIGHT) / 10
 
-    for x,y,width,height in faceList:
-        currentFace = {
-            "x": x,
-            "y": y,
-            "width": width,
-            "hight": height,
-            "seen": {
-                "uuid": lastUUID,
-                "prevSeen": False,
-                "screenshotCount": 0,
-                "seenFrames": 0,
-                "forgetValue": 0
-            }
-        }
-        currentFaces.append(currentFace)
+    Face.set_original_resolution(origin_width, origin_height)
+    
+    while (classification_session(capture_session)):
+        pass
+        
 
-        for recordedFace in recordedFaces:
-            if abs(recordedFace['x'] - x) <= moveThreshold[0] and abs(recordedFace['y'] - y) <= moveThreshold[1]:
-                recordedFace['x'] = x
-                recordedFace['y'] = y
-                recordedFace['width'] = width
-                recordedFace['height'] = height
+def classify_faces(frame):
+    face_classifier = cv2.CascadeClassifier(classifier_xml)
+    
+    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+    detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
-                recordedFace['seen']['prevSeen'] = True
-                recordedFace['seen']['seenFrames'] += 1
-                recordedFace['seen']['forgetValue'] = 0
+    return detected_faces
 
-                if recordedFace['seen']['seenFrames'] > screenshotThreshold:
-                    screenshot = Image.fromarray(cv2.cvtColor(currentFrame,cv2.COLOR_BGR2RGB))
-                    faceCrop = screenshot.crop((x,y,x+width,y+height))
 
-                    if not os.path.isdir(screenshotBaseDir+str(recordedFace['seen']['uuid'])):
-                        os.mkdir(screenshotBaseDir+str(recordedFace['seen']['uuid'])+"/")
+face_list = []
+face_uuid = 1
 
-                    faceCrop.save(screenshotBaseDir+str(recordedFace['seen']['uuid'])+"/"+str(recordedFace['seen']['screenshotCount'])+".jpg")
-                    recordedFace['seen']['screenshotCount'] += 1
+def classification_session(capture_session):
+    global face_list, face_uuid
+
+    cycle_start = time.time()
+
+    ret, current_frame = capture_session.read()
+    user_show_frame = cv2.copyTo(current_frame, current_frame)
+
+    if not ret:
+        raise FileNotFoundError("unable to load capture session properly")
+
+    detected_faces = classify_faces(current_frame)
+
+    for face_metadata in detected_faces:
+        x, y, width, height = face_metadata
+
+        this_face_uuid = 0
+
+        for face in face_list:
+            face: Face = face
+
+            if face.process_frame(x, y, width, height):
+                color = (0,255,0) if face.should_capture() else (0,0,255)
+
+                cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
+                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+20), cv2.FONT_HERSHEY_DUPLEX, 0.6, color)
                 break
         else:
-            recordedFaces.append(currentFace)
-            lastUUID += 1
+            face_list.append(Face(face_uuid, x, y, width, height))
 
-        #faceRecognitionFrame = cv2.rectangle(faceRecognitionFrame, (x,y), (x+width, y+width), (255,0,0), 2)
+            cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
+            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,255))
+
+            face_uuid += 1
+            
+
+    for face in face_list:
+        if face.should_delete():
+            face_list.remove(face)
         
-    for recordedFace in recordedFaces:
-        if recordedFace['seen']['prevSeen'] == False:
-            recordedFace['seen']['forgetValue'] += 1
-        
-        if recordedFace['seen']['forgetValue'] > forgetThreshold:
-            recordedFaces.remove(recordedFace)
+        if face.should_capture():
+            image = Image.fromarray(current_frame)
+            face.screenshot(image, screenshot_base_directory)
 
+        if not face.was_seen:
+            face.forget()
 
-    #cv2.imshow("Current Input", faceRecognitionFrame)
+        face.reset_was_seen()
+
+    fps = 1.0 / (time.time() - cycle_start)
+    cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
+    cv2.imshow("Classified Data", user_show_frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    
-    if time.time() - lastFPSShow > 1:
-        print("Update: ", 1.0 / (time.time() - start_time), "fps")
-        print(recordedFaces)
-        lastFPSShow = time.time()
+        return False
 
-    currentFrameNo += 1
+    return True
 
-captureSession.release()
-cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()
+
