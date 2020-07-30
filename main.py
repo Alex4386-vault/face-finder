@@ -65,10 +65,7 @@ def main():
         
 
 def classify_faces(frame):
-    if use_cuda:
-        face_classifier = cv2.cuda.CascadeClassifier_create(classifier_xml)
-    else:
-        face_classifier = cv2.CascadeClassifier(classifier_xml)
+    face_classifier = cv2.CascadeClassifier(classifier_xml)
 
     grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
