@@ -139,6 +139,9 @@ def classification_session(webcam: VideoStream):
         if not face.was_seen:
             face.forget()
 
+            if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
+                face_uuid -= 1
+
         face.reset_was_seen()
 
     fps = 1.0 / (time.time() - cycle_start)
