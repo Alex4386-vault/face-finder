@@ -22,8 +22,8 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'format=(string)BGRx ! '
             'videoconvert ! appsink').format(1280, 720)
 
-device_cam = 0
-use_cuda = False
+device_cam = 1
+use_cuda = True
 
 # === RESOURCE ===
 
