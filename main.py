@@ -74,10 +74,10 @@ def classify_faces(frame, downscale = 1):
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
     for face in detected_faces:
-        face.x = (int) (face.x * downscale)
-        face.y = (int) (face.y * downscale)
-        face.width = (int) (face.width * downscale)
-        face.height = (int) (face.height * downscale)
+        face[0] = (int) (face[0] * downscale)
+        face[1] = (int) (face[1] * downscale)
+        face[2] = (int) (face[2] * downscale)
+        face[3] = (int) (face[3] * downscale)
 
     return detected_faces
 
