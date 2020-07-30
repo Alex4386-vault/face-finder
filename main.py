@@ -69,7 +69,7 @@ def classify_faces(frame, downscale = 1):
     grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
     if downscale > 1:
-        grayscale_frame = cv2.resize(grayscale_frame, (frame.shape[1] / downscale, frame.shape[0] / downscale))
+        grayscale_frame = cv2.resize(grayscale_frame, ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale)))
     
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
