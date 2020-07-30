@@ -95,7 +95,7 @@ def classification_session(webcam: VideoStream):
 
     user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
-    detected_faces = classify_faces(current_frame)
+    detected_faces = classify_faces(current_frame, 2)
 
     for face_metadata in detected_faces:
         x, y, width, height = face_metadata
