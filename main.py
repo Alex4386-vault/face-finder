@@ -90,7 +90,7 @@ def classification_session(webcam: VideoStream):
 
     cycle_start = time.time()
 
-    current_frame = webcam.getFrame(Resolution.FullHD)
+    current_frame = webcam.getFrame(Resolution.HD)
     user_show_frame = np.copy(current_frame)
 
     user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
