@@ -5,6 +5,7 @@ import os
 from PIL import Image
 from datetime import datetime
 from pyfiglet import Figlet
+import numpy as np
 
 from Face import Face
 
@@ -39,7 +40,6 @@ def main():
 
     if not os.path.exists(screenshot_base_directory):
         os.mkdir(screenshot_base_directory)
-
     
     capture_session = cv2.VideoCapture(camera_to_use)
 
@@ -70,7 +70,8 @@ def classification_session(capture_session):
     cycle_start = time.time()
 
     ret, current_frame = capture_session.read()
-    user_show_frame = cv2.copyTo(current_frame, current_frame)
+
+    user_show_frame = np.copy(current_frame)
 
     if not ret:
         raise FileNotFoundError("unable to load capture session properly")
