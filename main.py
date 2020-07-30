@@ -1,4 +1,4 @@
-import cv2
+import cv
 import time
 import os
 
@@ -23,6 +23,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'videoconvert ! appsink').format(1280, 720)
 
 device_cam = 0
+use_cuda = False
 
 # === RESOURCE ===
 
@@ -31,6 +32,8 @@ screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M"
 classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
 
 # === LOGIC ===
+
+cv = cv2.cuda if use_cuda else cv2
 
 def main():
     figlet = Figlet()
@@ -62,9 +65,9 @@ def main():
         
 
 def classify_faces(frame):
-    face_classifier = cv2.CascadeClassifier(classifier_xml)
-    
-    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+    face_classifier = cv.CascadeClassifier(classifier_xml)
+
+    grayscale_frame = cv.cuda.cvtColor(frame, cv.COLOR_RGB2GRAY)
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
     return detected_faces
@@ -80,7 +83,8 @@ def classification_session(webcam: VideoStream):
 
     current_frame = webcam.getFrame()
     user_show_frame = np.copy(current_frame)
-    user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
+
+    user_show_frame = cv.cvtColor(user_show_frame, cv.COLOR_RGB2BGR)
 
     detected_faces = classify_faces(current_frame)
 
@@ -99,15 +103,15 @@ def classification_session(webcam: VideoStream):
             if face.process_frame(x, y, width, height):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
 
-                cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, color)
+                cv.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
+                cv.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, color)
                 break
 
         else:
             face_list.append(Face(face_uuid, x, y, width, height))
 
-            cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, (0,0,255))
+            cv.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
+            cv.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, (0,0,255))
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
 
             face_uuid += 1
@@ -129,10 +133,10 @@ def classification_session(webcam: VideoStream):
 
     fps = 1.0 / (time.time() - cycle_start)
 
-    cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
-    cv2.imshow("Classified Data", user_show_frame)
+    cv.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
+    cv.imshow("Classified Data", user_show_frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    if cv.waitKey(1) & 0xFF == ord('q'):
         return False
 
     return True
