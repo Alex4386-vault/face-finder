@@ -24,7 +24,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'videoconvert ! appsink').format(*Resolution.HD)
 
 device_cam = 1
-use_cuda = True
+user_viewport = (640,360)
 
 # === RESOURCE ===
 
@@ -113,14 +113,14 @@ def classification_session(webcam: VideoStream):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
 
                 cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, color)
+                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.3 * font_size_multiplier, color)
                 break
 
         else:
             face_list.append(Face(face_uuid, x, y, width, height))
 
             cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, (0,0,255))
+            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.3 * font_size_multiplier, (0,0,255))
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
 
             face_uuid += 1
@@ -143,6 +143,8 @@ def classification_session(webcam: VideoStream):
     fps = 1.0 / (time.time() - cycle_start)
 
     cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
+    cv2.resize(user_show_frame, user_viewport)
+
     cv2.imshow("Classified Data", user_show_frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
