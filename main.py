@@ -105,6 +105,7 @@ def classification_session(webcam: VideoStream):
         bigger_side = width if width > height else height
         
         font_size_multiplier = ( bigger_side / Face.origin_height )
+        font_scaler = 2
 
         for face in face_list:
             face: Face = face
@@ -113,14 +114,14 @@ def classification_session(webcam: VideoStream):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
 
                 cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.3 * font_size_multiplier, color)
+                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
                 break
 
         else:
             face_list.append(Face(face_uuid, x, y, width, height))
 
             cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.3 * font_size_multiplier, (0,0,255))
+            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
 
             face_uuid += 1
