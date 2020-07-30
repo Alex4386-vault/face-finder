@@ -8,7 +8,9 @@ from pyfiglet import Figlet
 import numpy as np
 
 from Face import Face
+from WebcamConnect import VideoStream
 
+# === CONFIG ===
 laboratory_camera = 'rtsp://192.9.45.64:554/profile2/media.smp'
 
 jetson_onboard_camera = ('nvarguscamerasrc ! '
@@ -22,9 +24,10 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 
 device_cam = 0
 
+# === RESOURCE ===
+
 camera_to_use = device_cam
 screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M")+"/"
-
 classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
 
 # === LOGIC ===
@@ -41,14 +44,20 @@ def main():
     if not os.path.exists(screenshot_base_directory):
         os.mkdir(screenshot_base_directory)
     
-    capture_session = cv2.VideoCapture(camera_to_use)
+    webcam = VideoStream(camera_to_use)
 
-    origin_width = capture_session.get(cv2.CAP_PROP_FRAME_WIDTH) / 10
-    origin_height = capture_session.get(cv2.CAP_PROP_FRAME_HEIGHT) / 10
-
-    Face.set_original_resolution(origin_width, origin_height)
+    webcam.connect()
     
-    while (classification_session(capture_session)):
+    print("Wait until the connection...")
+
+    while not webcam.isConnected():
+        pass
+
+    print("Connected!")
+
+    Face.set_original_resolution(*webcam.get_origin_resolution())
+    
+    while (classification_session(webcam)):
         pass
         
 
@@ -64,17 +73,14 @@ def classify_faces(frame):
 face_list = []
 face_uuid = 1
 
-def classification_session(capture_session):
+def classification_session(webcam: VideoStream):
     global face_list, face_uuid
 
     cycle_start = time.time()
 
-    ret, current_frame = capture_session.read()
-
+    current_frame = webcam.getFrame()
     user_show_frame = np.copy(current_frame)
-
-    if not ret:
-        raise FileNotFoundError("unable to load capture session properly")
+    user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
     detected_faces = classify_faces(current_frame)
 
@@ -83,6 +89,10 @@ def classification_session(capture_session):
 
         this_face_uuid = 0
 
+        bigger_side = width if width > height else height
+        
+        font_size_multiplier = ( bigger_side / Face.origin_height )
+
         for face in face_list:
             face: Face = face
 
@@ -90,13 +100,15 @@ def classification_session(capture_session):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
 
                 cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+20), cv2.FONT_HERSHEY_DUPLEX, 0.6, color)
+                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, color)
                 break
+
         else:
             face_list.append(Face(face_uuid, x, y, width, height))
 
             cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,255))
+            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_size_multiplier)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_size_multiplier, (0,0,255))
+            print("New Face: Face ID: {}".format(face_uuid))
 
             face_uuid += 1
             
@@ -104,6 +116,7 @@ def classification_session(capture_session):
     for face in face_list:
         if face.should_delete():
             face_list.remove(face)
+            print("Deleted Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count))
         
         if face.should_capture():
             image = Image.fromarray(current_frame)
@@ -115,6 +128,7 @@ def classification_session(capture_session):
         face.reset_was_seen()
 
     fps = 1.0 / (time.time() - cycle_start)
+
     cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
     cv2.imshow("Classified Data", user_show_frame)
 

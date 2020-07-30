@@ -77,7 +77,6 @@ class Face():
         self.was_seen = False
         self.forget_value += 1
         self.seen_frames = 0
-        self.screenshot_count = 0
     
     def reset_was_seen(self):
         self.was_seen = False
