@@ -131,6 +131,10 @@ def classification_session(webcam: VideoStream):
         if face.should_delete():
             face_list.remove(face)
             print("Deleted Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count))
+
+            if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
+                face_uuid -= 1
+                print("Not captured! Deleting it!")
         
         if face.should_capture():
             image = Image.fromarray(current_frame)
@@ -138,9 +142,6 @@ def classification_session(webcam: VideoStream):
 
         if not face.was_seen:
             face.forget()
-
-            if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
-                face_uuid -= 1
 
         face.reset_was_seen()
 
