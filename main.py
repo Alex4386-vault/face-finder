@@ -134,7 +134,7 @@ def classification_session(webcam: VideoStream):
 
             if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
                 face_uuid -= 1
-                print("Not captured! Deleting it!")
+                print("Terminate: Reverting Face ID to "+str(face_uuid))
         
         if face.should_capture():
             image = Image.fromarray(current_frame)
