@@ -9,6 +9,7 @@ import numpy as np
 
 from Face import Face
 from WebcamConnect import VideoStream
+from WebcamConnect.Resolution import Resolution
 
 # === CONFIG ===
 laboratory_camera = 'rtsp://192.9.45.64:554/profile2/media.smp'
@@ -20,7 +21,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'nvvidconv flip-method=0 ! '
             'video/x-raw, width=(int){}, height=(int){}, '
             'format=(string)BGRx ! '
-            'videoconvert ! appsink').format(1280, 720)
+            'videoconvert ! appsink').format(*Resolution.HD)
 
 device_cam = 1
 use_cuda = True
@@ -62,11 +63,21 @@ def main():
         pass
         
 
-def classify_faces(frame):
+def classify_faces(frame, downscale = 1):
     face_classifier = cv2.CascadeClassifier(classifier_xml)
 
     grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+
+    if downscale:
+        grayscale_frame = cv2.resize((frame.shape[1] / downscale, frame.shape[0] / downscale))
+    
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
+
+    for face in detected_faces:
+        face.x = (int) (face.x * downscale)
+        face.y = (int) (face.y * downscale)
+        face.width = (int) (face.width * downscale)
+        face.height = (int) (face.height * downscale)
 
     return detected_faces
 
@@ -79,7 +90,7 @@ def classification_session(webcam: VideoStream):
 
     cycle_start = time.time()
 
-    current_frame = webcam.getFrame()
+    current_frame = webcam.getFrame(Resolution.FullHD)
     user_show_frame = np.copy(current_frame)
 
     user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
