@@ -67,7 +67,7 @@ def main():
 def classify_faces(frame):
     face_classifier = universal_cuda.CascadeClassifier(classifier_xml)
 
-    grayscale_frame = cv2.cvtColor(frame, universal_cuda.COLOR_RGB2GRAY)
+    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
     return detected_faces
@@ -84,7 +84,7 @@ def classification_session(webcam: VideoStream):
     current_frame = webcam.getFrame()
     user_show_frame = np.copy(current_frame)
 
-    user_show_frame = cv2.cvtColor(user_show_frame, universal_cuda.COLOR_RGB2BGR)
+    user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
     detected_faces = classify_faces(current_frame)
 
