@@ -165,8 +165,8 @@ def classification_session(webcam: VideoStream):
 
         show_img(user_show_frame)
 
-    print("\b"*12, end='')
-    print("{:8.4f} fps".format(fps), end='')
+    print("\b"*12, end='', flush=True)
+    print("{:8.4f} fps".format(fps), end='', flush=True)
 
     return True
 
