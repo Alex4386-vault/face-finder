@@ -171,7 +171,7 @@ def classification_session(webcam: VideoStream):
 
         cv2.imshow("screen", user_show_frame)
 
-        if cv2.waitKey(0.1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             print("Quitting!", flush=True)
             return False
 
