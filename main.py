@@ -150,12 +150,12 @@ def classification_session(webcam: VideoStream):
     cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
     cv2.resize(user_show_frame, user_viewport)
 
-    cv2.imshow("Classified Data", user_show_frame)
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        return False
+    show_img(user_show_frame)
 
     return True
+
+async def show_img(frame):
+    cv2.imshow("screen", frame)
 
 
 if __name__ == "__main__":
