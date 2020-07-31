@@ -120,7 +120,7 @@ def classification_session(webcam: VideoStream):
             if face.process_frame(x, y, width, height):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
                 
-                if head_less:
+                if not head_less:
                     cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
                     cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
                 break
