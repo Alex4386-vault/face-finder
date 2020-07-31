@@ -25,7 +25,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'videoconvert ! appsink').format(*Resolution.HD)
 
 device_cam = 1
-user_viewport = (640,360)
+user_viewport = (854,480)
 
 facial_recognition_downscaler = 4
 
