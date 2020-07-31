@@ -175,7 +175,7 @@ def classification_session(webcam: VideoStream):
     fps = 1.0 / (time.time() - cycle_start)
 
     if not head_less:
-        cv2.rectangle(user_show_frame, (10,20), (100,40), (255,255,255), cv2.FILLED)
+        cv2.rectangle(user_show_frame, (5,5), (150,25), (255,255,255), cv2.FILLED)
         cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,0))
         cv2.resize(user_show_frame, user_viewport)
 
