@@ -149,7 +149,7 @@ def classification_session(webcam: VideoStream):
                 print("Terminate: Reverting Face ID to "+str(face_uuid))
         
         if face.should_capture():
-            if face.seen_frames <= 1:
+            if not face.was_seen:
                 if face.screenshot_count == 0:
                     print("Capturing Face: Face ID: {}".format(face.uuid), flush=True)
                 else:
