@@ -73,7 +73,7 @@ def main():
 
 cached_face_classifier = None
 
-def classify_faces(frame, cache = False, downscale = 1):
+def classify_faces(frame, downscale = 1, cache = False):
     global cached_face_classifier
 
     if not cache:
@@ -115,7 +115,7 @@ def classification_session(webcam: VideoStream):
         user_show_frame = np.copy(current_frame)
         user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
-    detected_faces = classify_faces(current_frame, facial_recognition_downscaler)
+    detected_faces = classify_faces(current_frame, facial_recognition_downscaler, True)
     already_found_faces = []
 
     for face_metadata in detected_faces:
