@@ -180,8 +180,6 @@ def classification_session(webcam: VideoStream):
 
     return True
 
-async def show_img(frame):
-
 
 if __name__ == "__main__":
     main()
