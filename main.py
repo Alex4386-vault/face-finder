@@ -76,7 +76,7 @@ def classify_faces(frame, downscale = 1):
 
     # downscale first!
     if downscale > 1:
-        grayscale_frame = cv2.resize(grayscale_frame, ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale)))
+        frame = cv2.resize(frame, ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale)))
 
     grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     
