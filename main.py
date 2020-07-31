@@ -99,7 +99,7 @@ def classification_session(webcam: VideoStream):
 
     cycle_start = time.time()
 
-    current_frame = webcam.getFrame(Resolution.HD)
+    current_frame = webcam.getFrame(Resolution.FullHD)
 
     if not head_less:
         user_show_frame = np.copy(current_frame)
