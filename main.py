@@ -151,6 +151,12 @@ def classification_session(webcam: VideoStream):
         if face.should_capture():
             image = Image.fromarray(current_frame)
             face.screenshot(image, screenshot_base_directory)
+            
+            if face.seen_frames == 0:
+                if face.screenshot_count ==0:
+                    print("Capturing Face: Face ID: {}".format(face.uuid))
+                else:
+                    print("Recapturing Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count))
 
         if not face.was_seen:
             face.forget()
