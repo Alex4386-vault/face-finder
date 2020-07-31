@@ -179,7 +179,7 @@ def classification_session(webcam: VideoStream):
         cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,0))
         user_show_frame = cv2.resize(user_show_frame, user_viewport)
 
-        cv2.imshow("screen", user_show_frame)
+        cv2.imshow("OpenCV Console (press 'q' to terminate)", user_show_frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             print("Quitting!", flush=True)
