@@ -27,6 +27,8 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 1
 user_viewport = (640,360)
 
+facial_recognition_downscaler = 4
+
 # === RESOURCE ===
 
 camera_to_use = device_cam
@@ -72,10 +74,11 @@ def main():
 def classify_faces(frame, downscale = 1):
     face_classifier = cv2.CascadeClassifier(classifier_xml)
 
-    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-
+    # downscale first!
     if downscale > 1:
         grayscale_frame = cv2.resize(grayscale_frame, ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale)))
+
+    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
     
     detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
 
@@ -102,7 +105,8 @@ def classification_session(webcam: VideoStream):
         user_show_frame = np.copy(current_frame)
         user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
-    detected_faces = classify_faces(current_frame, 2)
+    detected_faces = classify_faces(current_frame, facial_recognition_downscaler)
+    already_found_faces = []
 
     for face_metadata in detected_faces:
         x, y, width, height = face_metadata
@@ -118,7 +122,11 @@ def classification_session(webcam: VideoStream):
             face: Face = face
 
             if face.process_frame(x, y, width, height):
+                if face.uuid in already_found_faces:
+                    continue
+
                 color = (0,255,0) if face.should_capture() else (0,0,255)
+                already_found_faces.append(face.uuid)
                 
                 if not head_less:
                     cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
