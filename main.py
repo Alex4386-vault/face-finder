@@ -130,7 +130,7 @@ def classification_session(webcam: VideoStream):
                 
                 if not head_less:
                     cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                    cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
+                    cv2.putText(user_show_frame, "Face ID: {} (Capture: {})".format(face.uuid, face.screenshot_count), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
                 break
 
         else:
@@ -138,7 +138,7 @@ def classification_session(webcam: VideoStream):
 
             if not head_less:
                 cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
+                cv2.putText(user_show_frame, "Face ID: {} (Prep)".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
 
             print()
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
