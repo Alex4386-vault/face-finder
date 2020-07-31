@@ -44,8 +44,11 @@ class Face():
         return x, y
     
     def in_threshold(self, x, y, width, height):
-        threshold = self.get_move_threshold()
-        return abs(self.x - x) <= threshold[0] and abs(self.y - y) <= threshold[1]
+        move_threshold = self.get_move_threshold()
+        return (
+            abs(self.x - x) <= move_threshold[0] and abs(self.y - y) <= move_threshold[1] and
+            abs(self.width - width) <= move_threshold[0] and abs(self.height - height) <= move_threshold[1]
+        )
 
     def update_features(self, x, y, width, height):
         self.x = x
