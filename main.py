@@ -169,7 +169,11 @@ def classification_session(webcam: VideoStream):
         cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
         cv2.resize(user_show_frame, user_viewport)
 
-        show_img(user_show_frame)
+        cv2.imshow("screen", user_show_frame)
+
+        if cv2.waitKey(0) & 0xFF == ord('q'):
+            print("Quitting!", flush=True)
+            return False
 
     print("\b"*12, end='', flush=True)
     print("{:8.4f} fps".format(fps), end='', flush=True)
@@ -177,7 +181,6 @@ def classification_session(webcam: VideoStream):
     return True
 
 async def show_img(frame):
-    cv2.imshow("screen", frame)
 
 
 if __name__ == "__main__":
