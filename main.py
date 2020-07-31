@@ -27,7 +27,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 1
 user_viewport = (854,480)
 
-facial_recognition_downscaler = 4
+facial_recognition_downscaler = 2
 
 # === RESOURCE ===
 
