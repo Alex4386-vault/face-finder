@@ -125,6 +125,7 @@ def classification_session(webcam: VideoStream):
 
             cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
             cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
+            print()
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
 
             face_uuid += 1
@@ -133,6 +134,7 @@ def classification_session(webcam: VideoStream):
     for face in face_list:
         if face.should_delete():
             face_list.remove(face)
+            print()
             print("Deleted Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count))
 
             if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
@@ -155,6 +157,9 @@ def classification_session(webcam: VideoStream):
     
     if not head_less:
         show_img(user_show_frame)
+
+    print("\b".repeat(12), end='')
+    print("{:8.4f} fps".format(fps), end='')
 
     return True
 
