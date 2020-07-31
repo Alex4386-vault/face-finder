@@ -46,6 +46,9 @@ def main():
 
     print("Setting up directory...")
 
+    if head_less:
+        print("Running in headless mode!")
+
     if not os.path.exists(screenshot_base_directory):
         os.mkdir(screenshot_base_directory)
     
@@ -94,9 +97,10 @@ def classification_session(webcam: VideoStream):
     cycle_start = time.time()
 
     current_frame = webcam.getFrame(Resolution.HD)
-    user_show_frame = np.copy(current_frame)
 
-    user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
+    if not head_less:
+        user_show_frame = np.copy(current_frame)
+        user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
 
     detected_faces = classify_faces(current_frame, 2)
 
@@ -115,16 +119,19 @@ def classification_session(webcam: VideoStream):
 
             if face.process_frame(x, y, width, height):
                 color = (0,255,0) if face.should_capture() else (0,0,255)
-
-                cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
-                cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
+                
+                if head_less:
+                    cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
+                    cv2.putText(user_show_frame, "Face ID: {}".format(face.uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
                 break
 
         else:
             face_list.append(Face(face_uuid, x, y, width, height))
 
-            cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
-            cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
+            if not head_less:
+                cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
+                cv2.putText(user_show_frame, "Face ID: {}".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
+
             print()
             print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
 
@@ -152,10 +159,10 @@ def classification_session(webcam: VideoStream):
 
     fps = 1.0 / (time.time() - cycle_start)
 
-    cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
-    cv2.resize(user_show_frame, user_viewport)
-    
     if not head_less:
+        cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
+        cv2.resize(user_show_frame, user_viewport)
+
         show_img(user_show_frame)
 
     print("\b".repeat(12), end='')
