@@ -6,6 +6,7 @@ from PIL import Image
 from datetime import datetime
 from pyfiglet import Figlet
 import numpy as np
+import sys
 
 from Face import Face
 from WebcamConnect import VideoStream
@@ -31,6 +32,8 @@ user_viewport = (640,360)
 camera_to_use = device_cam
 screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M")+"/"
 classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
+
+head_less = "--headless" in sys.argv
 
 # === LOGIC ===
 
@@ -149,8 +152,9 @@ def classification_session(webcam: VideoStream):
 
     cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (134,67,0))
     cv2.resize(user_show_frame, user_viewport)
-
-    show_img(user_show_frame)
+    
+    if not head_less:
+        show_img(user_show_frame)
 
     return True
 
