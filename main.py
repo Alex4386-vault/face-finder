@@ -71,8 +71,18 @@ def main():
         pass
         
 
-def classify_faces(frame, downscale = 1):
-    face_classifier = cv2.CascadeClassifier(classifier_xml)
+cached_face_classifier = None
+
+def classify_faces(frame, cache = False, downscale = 1):
+    global cached_face_classifier
+
+    if not cache:
+        face_classifier = cv2.CascadeClassifier(classifier_xml)
+    elif cached_face_classifier is None:
+        face_classifier = cv2.CascadeClassifier(classifier_xml)
+        cached_face_classifier = face_classifier
+    else: 
+        face_classifier = cached_face_classifier
 
     # downscale first!
     if downscale > 1:
