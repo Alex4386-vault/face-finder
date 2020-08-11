@@ -8,6 +8,11 @@ from pyfiglet import Figlet
 import numpy as np
 import sys
 
+import torch
+import torchvision
+
+from facenet_pytorch import MTCNN, InceptionResNetV1
+
 from Face import Face
 from WebcamConnect import VideoStream
 from WebcamConnect.Resolution import Resolution
@@ -29,6 +34,8 @@ user_viewport = (854,480)
 
 facial_recognition_downscaler = 2
 
+use_cuda = True
+
 # === RESOURCE ===
 
 camera_to_use = device_cam
@@ -36,6 +43,32 @@ screenshot_base_directory = "screenshots/"+datetime.now().strftime("%Y%m%d-%H%M"
 classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
 
 head_less = "--headless" in sys.argv
+force_use_cuda = "--cuda" in sys.argv
+
+DEVICE = "cpu"
+
+if torch.cuda.is_available():
+    if force_use_cuda:
+        print("PyTorch detected CUDA, and executed with --cuda flag. Trying to use CUDA.")
+        DEVICE = "cuda"
+    else:
+        if use_cuda:
+            print("Source code default was set to use CUDA. Trying to use CUDA.")
+            DEVICE = "cuda"
+        else:
+            print("PyTorch detected CUDA, but source code default was forcing CPU. continuing with CPU.")
+
+else:
+    if force_use_cuda:
+        print("Warning! PyTorch did not detect CUDA, but executed with --cuda flag. Forcing PyTorch to use CUDA, expect some errors.")
+        DEVICE = "cuda"
+    else:
+        if use_cuda:
+            print("Warning! PyTorch did not detect CUDA, source code default wanted to use CUDA. ignoring source code default, using CPU.")
+        else:
+            print("Using CPU...")
+
+torch.device(DEVICE)
 
 # === LOGIC ===
 
@@ -71,26 +104,41 @@ def main():
         pass
         
 
-cached_face_classifier = None
+cached_mtcnn = None
+cached_resnet = None
 
 def classify_faces(frame, downscale = 1, cache = False):
-    global cached_face_classifier
+    global cached_mtcnn
+    global cached_resnet
 
-    if not cache:
-        face_classifier = cv2.CascadeClassifier(classifier_xml)
-    elif cached_face_classifier is None:
-        face_classifier = cv2.CascadeClassifier(classifier_xml)
-        cached_face_classifier = face_classifier
-    else: 
-        face_classifier = cached_face_classifier
+    size = ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale))
+    previously_cached = cached_mtcnn is not None and cached_resnet is not None
+
+    if not cache or not previously_cached:
+        mtcnn = MTCNN(keep_all=True, device=DEVICE)
+        #resnet = InceptionResNetV1(pretrained='vggface2')
+    else:
+        mtcnn = cached_mtcnn
+        resnet = cached_resnet
+
+    if cache:
+        cached_mtcnn = mtcnn
+        cached_resnet = resnet
 
     # downscale first!
     if downscale > 1:
-        frame = cv2.resize(frame, ((int)(frame.shape[1] / downscale), (int)(frame.shape[0] / downscale)))
+        frame = cv2.resize(frame, size)
 
-    grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+    # Not required, using FaceNet Instead.
+    # grayscale_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+
+    frame_img = Image.fromarray(frame)
     
-    detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
+    # detected_faces = face_classifier.detectMultiScale(grayscale_frame, 1.3, 5)
+
+    raw_face_list = mtcnn.detect(frame_img)
+
+    detected_faces = [face.tolist() for face in raw_face_list]
 
     for face in detected_faces:
         face[0] = (int) (face[0] * downscale)
