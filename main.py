@@ -197,6 +197,9 @@ while 1:
         cv2.rectangle(user_show_frame, (5,5), (150,25), (255,255,255), cv2.FILLED)
         cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,0))
 
+        cv2.rectangle(user_show_frame, (5,25), (250,45), (255,255,255), cv2.FILLED)
+        cv2.putText(user_show_frame, "Powered by FaceNet - PyTorch ver.".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,0))
+
         cv2.imshow("OpenCV Console (press 'q' to terminate)", user_show_frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
