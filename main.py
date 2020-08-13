@@ -171,6 +171,9 @@ while True:
 
     # == Face capture logic end
 
+    cycle_end = time.time()
+    fps = 1.0 / (cycle_end - cycle_start)
+
 
     if not head_less:
         user_show_frame = cv2.resize(user_show_frame, user_viewport)
@@ -183,9 +186,6 @@ while True:
             print("Quitting!", flush=True)
             break
 
-
-    cycle_end = time.time()
-    fps = 1.0 / (time.time() - cycle_start)
 
     print("\b"*12, end='', flush=True)
     print("{:8.4f} fps".format(fps), end='', flush=True)
