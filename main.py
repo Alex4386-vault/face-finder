@@ -30,7 +30,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 0
 user_viewport = (854,480)
 
-use_cuda = True
+use_cuda = False
 
 # === RESOURCE ===
 
@@ -97,6 +97,7 @@ while 1:
 
     frame = webcam.getFrame()
     raw_faces = mtcnn.detect(Image.fromarray(frame))
+    already_found_faces = []
 
     detected_faces = [[ int(i) for i in  face.tolist() ] for face in raw_faces[0]] if raw_faces[0] is not None else []
 
