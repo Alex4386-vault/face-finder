@@ -101,6 +101,8 @@ while 1:
 
     detected_faces = [[ int(i) for i in  face.tolist() ] for face in raw_faces[0]] if raw_faces[0] is not None else []
 
+    #webcam_width, webcam_height = webcam.get_origin_resolution()
+
     if not head_less:
         user_show_frame = np.copy(frame)
         user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
@@ -161,7 +163,7 @@ while 1:
                 else:
                     print("Recapturing Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count), flush=True)
 
-            image = Image.fromarray(current_frame)
+            image = Image.fromarray(frame)
             face.screenshot(image, screenshot_base_directory)
             
 
