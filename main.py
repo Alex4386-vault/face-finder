@@ -29,7 +29,8 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'videoconvert ! appsink').format(*Resolution.HD)
 
 device_cam = 0
-user_viewport = (854,480)
+#user_viewport = (854,480)
+user_viewport = (1280,720)
 
 use_cuda = False
 
