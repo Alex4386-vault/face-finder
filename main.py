@@ -4,7 +4,6 @@ import time
 import sys
 
 import cv2
-import os
 
 import numpy as np
 
@@ -102,6 +101,10 @@ mtcnn = MTCNN(keep_all=True, device=DEVICE)
 face_list = []
 face_uuid = 1
 
+def convert_style(i: List):
+    x0, y0, x1, y1 = i
+    return int(x0), int(y0), int(abs(x1-x0)), int(abs(y1-y0))
+
 while 1:
     cycle_start = time.time()
 
@@ -109,7 +112,7 @@ while 1:
     raw_faces = mtcnn.detect(Image.fromarray(frame))
     already_found_faces = []
 
-    detected_faces = [[ int(i) for i in  face.tolist() ] for face in raw_faces[0]] if raw_faces[0] is not None else []
+    detected_faces = [[ convert_style(i) for i in  face.tolist() ] for face in raw_faces[0]] if raw_faces[0] is not None else []
 
     #webcam_width, webcam_height = webcam.get_origin_resolution()
 
