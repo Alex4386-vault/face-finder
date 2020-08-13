@@ -84,11 +84,88 @@ Face.set_original_resolution(*webcam.get_origin_resolution())
 # === Neural Network ===
 mtcnn = MTCNN(keep_all=True, device=DEVICE)
 
+# === GLOBAL VARIABLES ===
+face_list = []
+face_uuid = 1
+
 while True:
     cycle_start = time.time()
 
     frame = webcam.getFrame()
-    mtcnn.detect(Image.fromarray(frame))
+    faces = mtcnn.detect(Image.fromarray(frame))
+
+    detected_faces = [face.tolist() for face in raw_face_list[0]] if raw_face_list[0] is not None else []
+
+    if not head_less:
+        user_show_frame = np.copy(current_frame)
+        user_show_frame = cv2.cvtColor(user_show_frame, cv2.COLOR_RGB2BGR)
+
+    # == Face capture logic ==
+    for face_metadata in detected_faces:
+        x, y, width, height = face_metadata
+
+        this_face_uuid = 0
+
+        bigger_side = width if width > height else height
+        
+        font_size_multiplier = ( bigger_side / Face.origin_height )
+        font_scaler = 2
+
+        for face in face_list:
+            face: Face = face
+
+            if face.process_frame(x, y, width, height):
+                if face.uuid in already_found_faces:
+                    continue
+
+                color = (0,255,0) if face.should_capture() else (0,0,255)
+                already_found_faces.append(face.uuid)
+                
+                if not head_less:
+                    cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), color, 2)
+                    cv2.putText(user_show_frame, "Face ID: {} (Capture: {})".format(face.uuid, face.screenshot_count), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, color)
+                break
+
+        else:
+            face_list.append(Face(face_uuid, x, y, width, height))
+
+            if not head_less:
+                cv2.rectangle(user_show_frame, (x,y), (x+width, y+height), (0,0,255), 2)
+                cv2.putText(user_show_frame, "Face ID: {} (Prep)".format(face_uuid), (x, y+height+(int)(5 * font_scaler * font_size_multiplier + 5)), cv2.FONT_HERSHEY_DUPLEX, 0.15 * font_scaler * font_size_multiplier, (0,0,255))
+
+            print()
+            print("New Face: Face ID: {} @ {}".format(face_uuid, datetime.now()))
+
+            face_uuid += 1
+            
+
+    for face in face_list:
+        if face.should_delete():
+            face_list.remove(face)
+            print()
+            print("Deleted Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count))
+
+            if face_uuid - 1 == face.uuid and face.screenshot_count == 0:
+                face_uuid -= 1
+                print("Terminate: Reverting Face ID to "+str(face_uuid))
+        
+        if face.should_capture():
+            if face.seen_frames - face.screenshot_threshold == 1:
+                if face.screenshot_count == 0:
+                    print("Capturing Face: Face ID: {}".format(face.uuid), flush=True)
+                else:
+                    print("Recapturing Face: Face ID: {}, Capture Count: {}".format(face.uuid, face.screenshot_count), flush=True)
+
+            image = Image.fromarray(current_frame)
+            face.screenshot(image, screenshot_base_directory)
+            
+
+        if not face.was_seen:
+            face.forget()
+
+        face.reset_was_seen()
+
+    # == Face capture logic end
 
     cycle_end = time.time()
 
