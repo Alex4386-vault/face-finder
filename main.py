@@ -32,7 +32,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 1
 user_viewport = (854,480)
 
-facial_recognition_downscaler = 4
+facial_recognition_downscaler = 1
 
 use_cuda = True
 
@@ -170,8 +170,9 @@ def classification_session(webcam: VideoStream):
     detected_faces = classify_faces(current_frame, facial_recognition_downscaler, True)
     already_found_faces = []
 
-    fps = 1.0 / (time.time() - cycle_start)
-    print("Classification process:", fps, "fps")
+    if debug_mode:
+        fps = 1.0 / (time.time() - cycle_start)
+        print("Classification process:", fps, "fps")
 
     for face_metadata in detected_faces:
         x, y, width, height = face_metadata
