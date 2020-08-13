@@ -29,7 +29,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'format=(string)BGRx ! '
             'videoconvert ! appsink').format(*Resolution.HD)
 
-device_cam = 1
+device_cam = 0
 user_viewport = (854,480)
 
 facial_recognition_downscaler = 2
@@ -138,7 +138,7 @@ def classify_faces(frame, downscale = 1, cache = False):
 
     raw_face_list = mtcnn.detect(frame_img)
 
-    detected_faces = [face.tolist() for face in raw_face_list]
+    detected_faces = [face.tolist() for face in raw_face_list[0]] if raw_face_list[0] is not None else []
 
     for face in detected_faces:
         face[0] = (int) (face[0] * downscale)
