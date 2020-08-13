@@ -3,6 +3,8 @@ import torchvision
 import time
 import sys
 
+import cv2
+
 import numpy as np
 
 from facenet_pytorch import MTCNN
