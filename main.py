@@ -92,7 +92,7 @@ mtcnn = MTCNN(keep_all=True, device=DEVICE)
 face_list = []
 face_uuid = 1
 
-while True:
+while 1:
     cycle_start = time.time()
 
     frame = webcam.getFrame()
