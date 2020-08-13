@@ -44,6 +44,15 @@ debug_mode = "--debug" in sys.argv
 
 DEVICE = "cpu"
 
+
+# headless
+if head_less:
+    print("Running in headless mode!")
+
+# create screenshot dir
+if not os.path.exists(screenshot_base_directory):
+    os.mkdir(screenshot_base_directory)
+
 # === Cuda ===
 
 if torch.cuda.is_available():
