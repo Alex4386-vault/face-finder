@@ -98,7 +98,7 @@ while True:
     frame = webcam.getFrame()
     raw_faces = mtcnn.detect(Image.fromarray(frame))
 
-    detected_faces = [face.tolist() for face in raw_faces[0]] if raw_faces[0] is not None else []
+    detected_faces = [[ int(i) for i in  face.tolist() ] for face in raw_faces[0]] if raw_faces[0] is not None else []
 
     if not head_less:
         user_show_frame = np.copy(frame)
