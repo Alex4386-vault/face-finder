@@ -119,11 +119,11 @@ def classify_faces(frame, downscale = 1, cache = False):
         #resnet = InceptionResnetV1(pretrained='vggface2')
     else:
         mtcnn = cached_mtcnn
-        resnet = cached_resnet
+        #resnet = cached_resnet
 
     if cache:
         cached_mtcnn = mtcnn
-        cached_resnet = resnet
+        #cached_resnet = resnet
 
     # downscale first!
     if downscale > 1:
