@@ -176,3 +176,17 @@ while True:
     fps = 1.0 / (time.time() - cycle_start)
     print(fps,"FPS")
 
+    if not head_less:
+        user_show_frame = cv2.resize(user_show_frame, user_viewport)
+        cv2.rectangle(user_show_frame, (5,5), (150,25), (255,255,255), cv2.FILLED)
+        cv2.putText(user_show_frame, "{:8.4f} fps".format(fps), (10,20), cv2.FONT_HERSHEY_DUPLEX, 0.6, (0,0,0))
+
+        cv2.imshow("OpenCV Console (press 'q' to terminate)", user_show_frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            print("Quitting!", flush=True)
+            break
+
+    print("\b"*12, end='', flush=True)
+    print("{:8.4f} fps".format(fps), end='', flush=True)
+
