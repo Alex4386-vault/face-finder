@@ -3,6 +3,8 @@ import torchvision
 import time
 import sys
 
+import numpy as np
+
 from facenet_pytorch import MTCNN
 from datetime import datetime
 from PIL import Image
