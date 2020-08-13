@@ -51,6 +51,8 @@ DEVICE = "cpu"
 # === LOGIC ===
 
 def main():
+    global DEVICE
+    
     figlet = Figlet()
     
     print(figlet.renderText("PRML"))
