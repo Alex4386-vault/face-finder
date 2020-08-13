@@ -11,7 +11,7 @@ import sys
 import torch
 import torchvision
 
-from facenet_pytorch import MTCNN, InceptionResNetV1
+from facenet_pytorch import MTCNN, InceptionResnetV1
 
 from Face import Face
 from WebcamConnect import VideoStream
@@ -116,7 +116,7 @@ def classify_faces(frame, downscale = 1, cache = False):
 
     if not cache or not previously_cached:
         mtcnn = MTCNN(keep_all=True, device=DEVICE)
-        #resnet = InceptionResNetV1(pretrained='vggface2')
+        #resnet = InceptionResnetV1(pretrained='vggface2')
     else:
         mtcnn = cached_mtcnn
         resnet = cached_resnet
