@@ -113,7 +113,7 @@ while 1:
     raw_faces = mtcnn.detect(Image.fromarray(frame))
     already_found_faces = []
 
-    detected_faces = [[ convert_style(face.tolist()) for face in raw_faces[0]] if raw_faces[0] is not None else []
+    detected_faces = [ convert_style(face.tolist()) for face in raw_faces[0]] if raw_faces[0] is not None else []
 
     #webcam_width, webcam_height = webcam.get_origin_resolution()
 
