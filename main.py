@@ -29,7 +29,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
             'format=(string)BGRx ! '
             'videoconvert ! appsink').format(*Resolution.HD)
 
-device_cam = 0
+device_cam = 1
 user_viewport = (854,480)
 
 facial_recognition_downscaler = 2
