@@ -32,9 +32,9 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 0
 user_viewport = (854,480)
 
-facial_recognition_downscaler = 2
+facial_recognition_downscaler = 1
 
-use_cuda = True
+use_cuda = False
 
 # === RESOURCE ===
 
@@ -52,7 +52,7 @@ DEVICE = "cpu"
 
 def main():
     global DEVICE
-    
+
     figlet = Figlet()
     
     print(figlet.renderText("PRML"))
@@ -178,6 +178,8 @@ def classification_session(webcam: VideoStream):
 
     for face_metadata in detected_faces:
         x, y, width, height = face_metadata
+
+        print(face_metadata)
 
         this_face_uuid = 0
 
