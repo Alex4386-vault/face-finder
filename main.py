@@ -32,7 +32,7 @@ jetson_onboard_camera = ('nvarguscamerasrc ! '
 device_cam = 1
 user_viewport = (854,480)
 
-facial_recognition_downscaler = 2
+facial_recognition_downscaler = 4
 
 use_cuda = True
 
@@ -44,31 +44,9 @@ classifier_xml = "TrainData/cuda/haarcascade_frontalface_default.xml"
 
 head_less = "--headless" in sys.argv
 force_use_cuda = "--cuda" in sys.argv
+debug_mode = "--debug" in sys.argv
 
 DEVICE = "cpu"
-
-if torch.cuda.is_available():
-    if force_use_cuda:
-        print("PyTorch detected CUDA, and executed with --cuda flag. Trying to use CUDA.")
-        DEVICE = "cuda"
-    else:
-        if use_cuda:
-            print("Source code default was set to use CUDA. Trying to use CUDA.")
-            DEVICE = "cuda"
-        else:
-            print("PyTorch detected CUDA, but source code default was forcing CPU. continuing with CPU.")
-
-else:
-    if force_use_cuda:
-        print("Warning! PyTorch did not detect CUDA, but executed with --cuda flag. Forcing PyTorch to use CUDA, expect some errors.")
-        DEVICE = "cuda"
-    else:
-        if use_cuda:
-            print("Warning! PyTorch did not detect CUDA, source code default wanted to use CUDA. ignoring source code default, using CPU.")
-        else:
-            print("Using CPU...")
-
-torch.device(DEVICE)
 
 # === LOGIC ===
 
@@ -81,12 +59,38 @@ def main():
 
     print("Setting up directory...")
 
+    # headless
     if head_less:
         print("Running in headless mode!")
 
+    # create screenshot dir
     if not os.path.exists(screenshot_base_directory):
         os.mkdir(screenshot_base_directory)
     
+    # Cuda
+    if torch.cuda.is_available():
+        if force_use_cuda:
+            print("PyTorch detected CUDA, and executed with --cuda flag. Trying to use CUDA.")
+            DEVICE = "cuda"
+        else:
+            if use_cuda:
+                print("Source code default was set to use CUDA. Trying to use CUDA.")
+                DEVICE = "cuda"
+            else:
+                print("PyTorch detected CUDA, but source code default was forcing CPU. continuing with CPU.")
+
+    else:
+        if force_use_cuda:
+            print("Warning! PyTorch did not detect CUDA, but executed with --cuda flag. Forcing PyTorch to use CUDA, expect some errors.")
+            DEVICE = "cuda"
+        else:
+            if use_cuda:
+                print("Warning! PyTorch did not detect CUDA, source code default wanted to use CUDA. ignoring source code default, using CPU.")
+            else:
+                print("Using CPU...")
+
+    torch.device(DEVICE)
+
     webcam = VideoStream(camera_to_use)
 
     webcam.connect()
@@ -165,6 +169,9 @@ def classification_session(webcam: VideoStream):
 
     detected_faces = classify_faces(current_frame, facial_recognition_downscaler, True)
     already_found_faces = []
+
+    fps = 1.0 / (time.time() - cycle_start)
+    print("Classification process:", fps, "fps")
 
     for face_metadata in detected_faces:
         x, y, width, height = face_metadata
