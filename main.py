@@ -102,7 +102,7 @@ mtcnn = MTCNN(keep_all=True, device=DEVICE)
 face_list = []
 face_uuid = 1
 
-def convert_style(i: List):
+def convert_style(i: list):
     x0, y0, x1, y1 = i
     return int(x0), int(y0), int(abs(x1-x0)), int(abs(y1-y0))
 
