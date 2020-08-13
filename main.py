@@ -88,6 +88,7 @@ while True:
     cycle_start = time.time()
 
     frame = webcam.getFrame()
+    mtcnn.detect(Image.fromarray(frame))
 
     cycle_end = time.time()
 
