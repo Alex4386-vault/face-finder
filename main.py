@@ -1,11 +1,11 @@
 import torch
 import torchvision
 import time
-import datetime
 
 from facenet_pytorch import MTCNN
-
+from datetime import datetime
 from PIL import Image
+
 from Face import Face
 from WebcamConnect import VideoStream
 from WebcamConnect.Resolution import Resolution
